@@ -32,6 +32,12 @@
  * pyinstaller(5.9.0) / https://github.com/pyinstaller/pyinstaller / https://pyinstaller.org/en/stable/
 
 
+# camera_v2
+**New Camera App that contains video recording, pausing and continuing, additionly have new interface and less faulty**
+
+  - This is not a update, this a new application.
+  - Tttbootstrap is used for new user interface.
+
 ### Contact 
 - Yakup Hüseyin Özdemir
 - Mail: yakuph.ozdemir@gmail.com
