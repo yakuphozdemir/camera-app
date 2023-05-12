@@ -14,7 +14,15 @@ root.resizable(True, True)
 # print(tbs.Style().theme_names())
 style = tbs.Style("cosmo")
 
-image = ImageTk.PhotoImage(Image.open("image2.png"))
+noble = ImageTk.PhotoImage(Image.open("icons\\flag.png"))
+cam_cap = ImageTk.PhotoImage(Image.open("icons\\capture_1.png"))
+cam_rec = ImageTk.PhotoImage(Image.open("icons\\cam-rec_2.png"))
+image = ImageTk.PhotoImage(Image.open("icons\\image_3.png"))
+folder = ImageTk.PhotoImage(Image.open("icons\\folder_4.png"))
+#rec_button = ImageTk.PhotoImage(Image.open("icons\\record-button_5.png"))
+pause_button = ImageTk.PhotoImage(Image.open("icons\\pause-button_6.png"))
+play_button = ImageTk.PhotoImage(Image.open("icons\\play-button_7.png"))
+stop_button = ImageTk.PhotoImage(Image.open("icons\\stop-button_8.png"))
 
 root.cam = cv.VideoCapture(0)
 
@@ -22,13 +30,13 @@ width_1, height_1 = 640, 480
 root.cam.set(cv.CAP_PROP_FRAME_WIDTH, width_1)
 root.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height_1)
     
-destPath = tbs.StringVar(value="C:\\Users\\yakup\\Pictures\\cameraapp")
+destPath = tbs.StringVar()      # value="C:\\Users\\yakup\\Pictures\\cameraapp"
 def destBrowse():
-    directory = filedialog.askdirectory(initialdir="C:\\Users\\yakup\\Pictures\\cameraapp")
+    directory = filedialog.askdirectory()   #initialdir="C:\\Users\\yakup\\Pictures\\cameraapp"
     destPath.set(directory)
     
 def openImage():
-    openDirectory = filedialog.askopenfilename(initialdir=destPath)
+    openDirectory = filedialog.askopenfilename()    #initialdir=destPath
     image = Image.open(openDirectory)
     image.show()
 
@@ -38,58 +46,44 @@ def changeTheme():
     i += 1
     if i % 2 == 0:
         style = tbs.Style("darkly")
-        root.roundToggle.configure(text="Karanlık Tema")
+        root.roundToggle.configure(text="Dark")
     else:
         style = tbs.Style("cosmo")
-        root.roundToggle.configure(text="Açık Tema")
+        root.roundToggle.configure(text="Light")
 
 def createWidgets():
 
     root.cameraLabel = tbs.Label(master=root, bootstyle="primary", borderwidth=10, relief="solid")
     root.cameraLabel.place(relx=.5, rely=.5, anchor="center")
 
-    browseButton = tbs.Button(root, width=30, text="Kaydın kaydedileceği adres", bootstyle="success",  command=destBrowse)
+    browseButton = tbs.Button(root, width=30, text="Kaydın kaydedileceği adres", bootstyle="link", image=folder, command=destBrowse)
     browseButton.place(rely=1, x=5, y=-5, anchor="sw")
 
-    captureButton = tbs.Button(root, text="Fotoğraf Çek", command=capture)
-    captureButton.place(rely=0.5, relx=1, x=-60, y=20, anchor="center")
+    captureButton = tbs.Button(root, text="Fotoğraf Çek",bootstyle="link", image=cam_cap, command=capture)
+    captureButton.place(rely=0.5, relx=1, x=-60, y=40, anchor="center")
 
-    root.recordButton = tbs.Button(root, text="Video Çek", command=increaseCheck)
-    root.recordButton.place(rely=0.5, relx=1, x=-50, y=-20,  anchor="center")
+    root.recordButton = tbs.Button(root, text="Video Çek", bootstyle="link", image=cam_rec, command=increaseControl)
+    root.recordButton.place(rely=0.5, relx=1, x=-60, y=-40,  anchor="center")
     
-    root.pauseVideoButton = tbs.Button(root, text="Videoyu duraklat", command=pauseCommand)
-    #root.pauseVideoButton.place(rely=0.5, relx=1, x=-70, y=-60, anchor="center")
+    root.pauseVideoButton = tbs.Button(root, text="Videoyu duraklat",bootstyle="link", image=pause_button, command=pauseCommand)
+    #root.pauseVideoButton.place(rely=0.5, relx=1, x=-60, y=-120, anchor="center")
     #root.pauseVideoButton.place_forget()
     
-    photoButton = tbs.Button(root, text="Dosyayı Aç", command=openImage)
+    photoButton = tbs.Button(root, text="Dosyayı Aç",bootstyle="link", image=image, command=openImage)
     photoButton.place(rely=1, relx=1, x=-5, y=-5, anchor="se")
 
-    root.roundToggle = tbs.Checkbutton(root, bootstyle="success, round-toggle", text="Açık tema", command=changeTheme)
+    root.roundToggle = tbs.Checkbutton(root, bootstyle="success, round-toggle", text="Light", command=changeTheme)
     root.roundToggle.place(relx=1, x=-10, y=5, anchor="ne")
     
-    flag = tbs.Label(root, text="Bayrak", image=image)
+    flag = tbs.Label(root, text="Bayrak", image=noble)
     flag.place(anchor="nw")
     
     camera()
 
 recordControl = 0
-def increaseCheck():
+def increaseControl():
     global recordControl
     recordControl = recordControl+1
-    return recordControl
-
-def destVideo():
-    videoTime = datetime.now().strftime("%d-%m-%Y %H-%M-%S")
-    
-    if destPath.get() != "":
-        videoPath = destPath.get()
-    else:
-        Messagebox.show_error(message="Error", title="No Directory Selected for Store Video")
-        
-    videoName = videoPath + "\\" + videoTime + ".mp4v"
-    fourcc = cv.VideoWriter_fourcc(*"mp4v")
-    out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
-    return out
 
 p = 0
 def pauseCommand():
@@ -97,9 +91,8 @@ def pauseCommand():
     p+=1    
 
 def camera():
-    global out
-    global recordControl
-    global p
+    global out, recordControl, p
+    
     ret,frame = root.cam.read()
     
     if ret == True:
@@ -116,24 +109,28 @@ def camera():
             videoTime = datetime.now().strftime("%d-%m-%Y %H-%M-%S")        
             if destPath.get() != "":
                 videoPath = destPath.get()
+                videoName = videoPath + "\\" + videoTime + ".mp4v"
+                fourcc = cv.VideoWriter_fourcc(*"mp4v")
+                out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
+                increaseControl()
+                print(recordControl)
             else:
-                Messagebox.show_error(message="Error", title="No Directory Selected for Store Video")
-            out = destVideo()
-            increaseCheck()
+                Messagebox.show_error(message="Directory is not selected for video storing", title="Error")
+                recordControl = 0
+            #out = destVideo()
             
         elif recordControl == 2 and p % 2 == 0:
             out.write(frame)
-            root.recordButton.configure(text="Video Durdur")
-            root.pauseVideoButton.configure(text="Videoyu duraklat")
-            root.pauseVideoButton.place(rely=0.5, relx=1, x=-70, y=-60, anchor="center")
+            root.recordButton.configure(text="Video Durdur", image=stop_button)
+            root.pauseVideoButton.configure(image=pause_button)
+            root.pauseVideoButton.place(rely=0.5, relx=1, x=-60, y=-120, anchor="center")
         elif p % 2 == 1:
-            out.release
-            root.pauseVideoButton.configure(text="Videoyu devam ettir")
+            root.pauseVideoButton.configure(text="Videoyu devam ettir", image=play_button)
         elif recordControl == 3:
             out.release()
             recordControl = 0
             p = 0
-            root.recordButton.configure(text="Video Başlat")
+            root.recordButton.configure(text="Video Başlat", image=cam_rec)
             root.pauseVideoButton.place_forget()
         
         root.cameraLabel.after(10,camera)
@@ -147,81 +144,32 @@ def capture():
     if destPath.get() != "":
         imagePath = destPath.get()
     else:
-        Messagebox.show_error(message="Error",title="No Directory Selected to Store Image")
+        Messagebox.show_error(message="Directory is not selected to image storing, please select directory by use left bottom button", 
+                              title="Error")
         
     imageName = imagePath + "\\" + imageTime + ".png"
     
     ret, frame = root.cam.read()
     frame = cv.flip(frame,1)
-    cv.putText(frame, datetime.now().strftime("%d/%m/%Y %H:/%M:%S"), (430,460), cv.FONT_HERSHEY_DUPLEX, 0.5, (255,255,255))
+    cv.putText(frame, datetime.now().strftime("%d/%m/%Y %H:%M:%S"), (430,460), cv.FONT_HERSHEY_DUPLEX, 0.5, (255,255,255))
     success = cv.imwrite(imageName,frame)
 
 createWidgets()
 root.mainloop()
 
-"""
-def camera():
 
-    ret, frame = root.cam.read()
-    
-    if ret == True:
-        frame = cv.flip(frame,1)                  #day/month/year , hour/minute/second
-        cv.putText(frame, datetime.now().strftime("%d/%m/%Y %H:%M:%S"), (430,460), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255))
-        frame2 = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-    
-        videoImage = Image.fromarray(frame2)
-        imageTk = ImageTk.PhotoImage(image=videoImage)
-        
-        root.cameraLabel.configure(image=imageTk)
-        root.cameraLabel.image = imageTk
-        root.cameraLabel.after(10,camera)
-    else:
-        root.cameraLabel.configure(image="")
-"""
 
 """
-recordControl = 0	
-def record():
-    global recordControl
-    videoTime = datetime.now().strftime("%d-%m-%Y %H-%M-%S")        
-    if destPath.get() != "":
-        videoPath = destPath.get()
-    else:
-        Messagebox.show_error(message="Error", title="No Directory Selected for Store Video")
-        
-    videoName = videoPath + "\\" + videoTime + ".avi"
-        
-    fourcc = cv.VideoWriter_fourcc(*"XVID")
-    out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
-    
-    while True:   
-        ret, frame = root.cam.read()
-        frame = cv.flip(frame, 1)
-        if recordControl == 0:
-            out.write(frame)
-        elif recordControl == 2:
-            break
-    out.release()
-"""
-
-"""
-def record():
-    
+def destVideo():
     videoTime = datetime.now().strftime("%d-%m-%Y %H-%M-%S")
     
     if destPath.get() != "":
         videoPath = destPath.get()
     else:
         Messagebox.show_error(message="Error", title="No Directory Selected for Store Video")
-    
-    videoName = videoPath + "\\" + videoTime + ".avi"
-    
-    fourcc = cv.VideoWriter_fourcc(*"XVID")
-    out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
         
-    ret, frame = root.cam.read()
-    frame = cv.flip(frame, 1)
-    cv.putText(frame, datetime.now().strftime("%d/%m/%Y %H:%M:%S"), (430,460), cv.FONT_HERSHEY_DUPLEX, 0.5, (255,255,255))
-    out.write(frame)
+    videoName = videoPath + "\\" + videoTime + ".mp4v"
+    fourcc = cv.VideoWriter_fourcc(*"mp4v")
+    out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
+    return out
 """
-
