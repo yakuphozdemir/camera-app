@@ -5,6 +5,7 @@ from datetime import datetime
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from ttkbootstrap.dialogs import Messagebox
+from os import startfile
 
 root = tbs.Window()
 root.title("Camera")
@@ -12,17 +13,19 @@ root.geometry("1280x800")
 root.resizable(True, True)
 
 # print(tbs.Style().theme_names())
-style = tbs.Style("cosmo")
+style = tbs.Style("darkly")
 
-noble = ImageTk.PhotoImage(Image.open("icons\\flag.png"))
-cam_cap = ImageTk.PhotoImage(Image.open("icons\\capture_1.png"))
-cam_rec = ImageTk.PhotoImage(Image.open("icons\\cam-rec_2.png"))
-image = ImageTk.PhotoImage(Image.open("icons\\image_3.png"))
-folder = ImageTk.PhotoImage(Image.open("icons\\folder_4.png"))
-#rec_button = ImageTk.PhotoImage(Image.open("icons\\record-button_5.png"))
-pause_button = ImageTk.PhotoImage(Image.open("icons\\pause-button_6.png"))
-play_button = ImageTk.PhotoImage(Image.open("icons\\play-button_7.png"))
-stop_button = ImageTk.PhotoImage(Image.open("icons\\stop-button_8.png"))
+noble = ImageTk.PhotoImage(Image.open("icons\\00_flag1.png"))
+cam_cap = ImageTk.PhotoImage(Image.open("icons\\1_capture.png"))
+cam_rec = ImageTk.PhotoImage(Image.open("icons\\2_cam-rec.png"))
+image = ImageTk.PhotoImage(Image.open("icons\\3_image.png"))
+folder = ImageTk.PhotoImage(Image.open("icons\\4_folder.png"))
+#rec_button = ImageTk.PhotoImage(Image.open("icons\\5_record-button.png"))
+pause_button = ImageTk.PhotoImage(Image.open("icons\\6_pause-button.png"))
+play_button = ImageTk.PhotoImage(Image.open("icons\\7_play-button.png"))
+stop_button = ImageTk.PhotoImage(Image.open("icons\\8_stop-button.png"))
+brightness = ImageTk.PhotoImage(Image.open("icons\\9_brightness.png"))
+contrast = ImageTk.PhotoImage(Image.open("icons\\10_contrast.png"))
 
 root.cam = cv.VideoCapture(0)
 
@@ -30,55 +33,151 @@ width_1, height_1 = 640, 480
 root.cam.set(cv.CAP_PROP_FRAME_WIDTH, width_1)
 root.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height_1)
     
-destPath = tbs.StringVar()      # value="C:\\Users\\yakup\\Pictures\\cameraapp"
+destPath = tbs.StringVar()     #value="C:\\Users\\yakup\\Pictures\\cameraapp"
 def destBrowse():
     directory = filedialog.askdirectory()   #initialdir="C:\\Users\\yakup\\Pictures\\cameraapp"
     destPath.set(directory)
     
 def openImage():
     openDirectory = filedialog.askopenfilename()    #initialdir=destPath
-    image = Image.open(openDirectory)
-    image.show()
+    imageTypes = [".png", ".jpg", ".jpeg", ".svg"]
+    videoTypes = [".avi", ".mp4", ".mp4a", ".xvid", ".mp4v"]
+    if any(element in openDirectory for element in imageTypes):
+        image = Image.open(openDirectory)
+        image.show()
+        #startfile(openDirectory)
+    elif any(element in openDirectory for element in videoTypes):
+        startfile(openDirectory)
+    elif openDirectory == "":
+        ""
+    else:
+        Messagebox.show_error(message="This is not a valid file. \nPlease select a video or image.", 
+                              title="Error") 
 
-i = 1
+i = 2
 def changeTheme():
     global i
-    i += 1
+    i+=1
     if i % 2 == 0:
         style = tbs.Style("darkly")
         root.roundToggle.configure(text="Dark")
     else:
         style = tbs.Style("cosmo")
         root.roundToggle.configure(text="Light")
+    
 
 def createWidgets():
-
+    theme="primary"
+    #print(tbs.Style().theme_names())
+    bootstyle="link"
     root.cameraLabel = tbs.Label(master=root, bootstyle="primary", borderwidth=10, relief="solid")
     root.cameraLabel.place(relx=.5, rely=.5, anchor="center")
 
-    browseButton = tbs.Button(root, width=30, text="Kaydın kaydedileceği adres", bootstyle="link", image=folder, command=destBrowse)
+    browseButton = tbs.Button(root, width=30, text="Kaydın kaydedileceği adres", bootstyle=bootstyle, takefocus=True, image=folder, command=destBrowse)
     browseButton.place(rely=1, x=5, y=-5, anchor="sw")
 
-    captureButton = tbs.Button(root, text="Fotoğraf Çek",bootstyle="link", image=cam_cap, command=capture)
+    captureButton = tbs.Button(root, text="Fotoğraf Çek",bootstyle=bootstyle, image=cam_cap, command=capture)
     captureButton.place(rely=0.5, relx=1, x=-60, y=40, anchor="center")
 
-    root.recordButton = tbs.Button(root, text="Video Çek", bootstyle="link", image=cam_rec, command=increaseControl)
+    root.recordButton = tbs.Button(root, text="Video Çek", bootstyle=bootstyle, image=cam_rec, command=increaseControl)
     root.recordButton.place(rely=0.5, relx=1, x=-60, y=-40,  anchor="center")
     
-    root.pauseVideoButton = tbs.Button(root, text="Videoyu duraklat",bootstyle="link", image=pause_button, command=pauseCommand)
+    root.pauseVideoButton = tbs.Button(root, text="Videoyu duraklat",bootstyle=bootstyle, image=pause_button, command=pauseCommand)
     #root.pauseVideoButton.place(rely=0.5, relx=1, x=-60, y=-120, anchor="center")
     #root.pauseVideoButton.place_forget()
     
-    photoButton = tbs.Button(root, text="Dosyayı Aç",bootstyle="link", image=image, command=openImage)
+    photoButton = tbs.Button(root, text="Dosyayı Aç",bootstyle=bootstyle, image=image, command=openImage)
     photoButton.place(rely=1, relx=1, x=-5, y=-5, anchor="se")
 
-    root.roundToggle = tbs.Checkbutton(root, bootstyle="success, round-toggle", text="Light", command=changeTheme)
+    root.roundToggle = tbs.Checkbutton(root, bootstyle=f"{theme}, round-toggle", text="Dark", command=changeTheme)
     root.roundToggle.place(relx=1, x=-10, y=5, anchor="ne")
+    
+    root.flipToggle = tbs.Checkbutton(root, bootstyle=f"{theme}, round-toggle", text="Flip", command=increaseFlip)
+    root.flipToggle.place(relx=1, x=-18, y=30, anchor="ne")
+    
+    #Brightness Buttons
+    root.brightCheck = tbs.Checkbutton(root, bootstyle=f"outline-toolbutton-{theme}", image=brightness, command=openScaler1)
+    root.brightCheck.place(rely=0.5, x=10, y=-21, anchor="w")
+    
+    root.brightScale = tbs.Scale(root, bootstyle="warning", length=200, orient="vertical", cursor="circle", from_=50, to=-50, value=0, command=scaler2)
+    #root.brightScale.place(rely=0.5, x=30, anchor="w")
+    
+    root.brightValue = tbs.Label(root, bootstyle="warning",text=f'{int(root.brightScale.get())*2}%')
+    #root.brightValue.place(rely=0.5, x=30, y=-150, anchor="w")
+    
+    root.brightLabel = tbs.Label(root, text="Brightness", font=('Segoe UI',12))
+    #root.brightLabel.place(rely=0.5, x=30, y=-150, anchor="w")
+    
+    #Contrass Buttons
+    root.contrastCheck = tbs.Checkbutton(root, bootstyle=f"outline-toolbutton-{theme}", image=contrast, command=openScaler2)
+    root.contrastCheck.place(rely=0.5, x=10, y=21, anchor="w")
+    
+    root.contrastScale = tbs.Scale(root, bootstyle="warning", length=200, orient="vertical", cursor="circle", from_=2, to=0, value=1, command=scaler1)
+    #root.contrastScale.place(rely=0.5, x=70, anchor="w")
+    
+    root.contrastValue = tbs.Label(root, bootstyle="warning",text=f'{float(root.contrastScale.get())*50}%')
+    #root.contrastValue.place(rely=0.5, x=70, y=-150, anchor="w")
+    
+    root.contrastLabel = tbs.Label(root, text="Contrast", font=('Segoe UI',12))
+    #root.contrastLabel.place(rely=0.5, x=70, y=-50, anchor="w")
     
     flag = tbs.Label(root, text="Bayrak", image=noble)
     flag.place(anchor="nw")
     
     camera()
+
+s1 = 0
+def openScaler1():
+    global s1
+    s1+=1
+    if s1 % 2 == 1:
+        root.brightScale.place(rely=0.5, x=120, anchor="w")
+        root.brightValue.place(rely=0.5, x=120, y=-150, anchor="w")
+        root.brightLabel.place(rely=0.5, x=80, y=130, anchor="w")
+    else:
+        root.brightScale.place_forget()
+        root.brightValue.place_forget()
+        root.brightLabel.place_forget()
+
+s2 = 0
+def openScaler2():
+    global s2
+    s2+=1
+    if s2 % 2 == 1:
+        root.contrastScale.place(rely=0.5, x=220, anchor="w")
+        root.contrastValue.place(rely=0.5, x=210, y=-150, anchor="w")
+        root.contrastLabel.place(rely=0.5, x=190, y=130, anchor="w")
+    else:
+        root.contrastScale.place_forget()
+        root.contrastValue.place_forget()
+        root.contrastLabel.place_forget()
+
+def scaler1(e):
+    global frame
+    frame = cv.convertScaleAbs(frame,alpha=root.contrastScale.get(), beta=int(root.brightScale.get()))
+    root.contrastValue.configure(text=f'{float(root.contrastScale.get())*50:.4}%')
+    return frame
+
+def scaler2(e):
+    global frame
+    frame = cv.convertScaleAbs(frame,alpha=root.contrastScale.get(),beta=int(root.brightScale.get()))
+    root.brightValue.configure(text=f'{int(root.brightScale.get())*2}%')
+    return frame
+
+"""
+j = 1
+def flip():
+    global frame, j
+    if j % 2 == 1:
+        frame = cv.flip(frame,1)
+    j+=1
+    return frame
+"""
+
+flipControl = 0
+def increaseFlip():
+    global flipControl
+    flipControl+=1
 
 recordControl = 0
 def increaseControl():
@@ -91,12 +190,15 @@ def pauseCommand():
     p+=1    
 
 def camera():
-    global out, recordControl, p
+    global out, recordControl, p, frame
     
     ret,frame = root.cam.read()
     
     if ret == True:
-        frame = cv.flip(frame,1)
+        if flipControl % 2 == 0:
+            frame = cv.flip(frame,1)
+        frame = scaler1(frame)
+        frame = scaler2(frame)
         cv.putText(frame, datetime.now().strftime("%d/%m/%Y %H:%M:%S"), (430,460), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255))
         frame2 = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         videoImage = Image.fromarray(frame2)
@@ -109,7 +211,7 @@ def camera():
             videoTime = datetime.now().strftime("%d-%m-%Y %H-%M-%S")        
             if destPath.get() != "":
                 videoPath = destPath.get()
-                videoName = videoPath + "\\" + videoTime + ".mp4v"
+                videoName = videoPath + "\\" + videoTime + ".mp4"
                 fourcc = cv.VideoWriter_fourcc(*"mp4v")
                 out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
                 increaseControl()
@@ -144,13 +246,14 @@ def capture():
     if destPath.get() != "":
         imagePath = destPath.get()
     else:
-        Messagebox.show_error(message="Directory is not selected to image storing, please select directory by use left bottom button", 
+        Messagebox.show_error(message="Directory is not selected to image storing.\nPlease select directory by use left bottom button.", 
                               title="Error")
         
     imageName = imagePath + "\\" + imageTime + ".png"
     
     ret, frame = root.cam.read()
-    frame = cv.flip(frame,1)
+    if flipControl % 2 == 0:
+        frame = cv.flip(frame,1)
     cv.putText(frame, datetime.now().strftime("%d/%m/%Y %H:%M:%S"), (430,460), cv.FONT_HERSHEY_DUPLEX, 0.5, (255,255,255))
     success = cv.imwrite(imageName,frame)
 
