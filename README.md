@@ -33,10 +33,19 @@
 
 
 # camera_v2
-**New Camera App that contains video recording, pausing and continuing, additionly have new interface and less faulty**
+**New Camera App that contains video recording, pausing and continuing and many features, additionly have new interface and less faulty**
 
   - This is not a update, this a new application.
   - Tttbootstrap is used for new user interface.
+
+  - There are some steps for improve the app in the commits.
+    - First and second commit is about first version of app.
+    - camera_v2 commit includes new interface and the upper version of first version.
+    - Fourth commit includes new icons about buttons.
+    - In fifth commit flip, contrast, brightness settings were added, default theme is changed. In additionly, videos can be opened by using file open button. Just images could be opened in before versions however you can just open images and videos. If you try to open another type file, you face error message.
+    - In the sixth commit, voice recording feature is added in video record.
+
+**Important: Multiprocessing, thereading or ascynio is not used for voice recording. Therefore there are optimization and stabilization problems in the program. Recommended to use fifth commit.** 
 
 ### Contact 
 - Yakup Hüseyin Özdemir
