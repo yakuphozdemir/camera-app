@@ -5,7 +5,11 @@ from datetime import datetime
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from ttkbootstrap.dialogs import Messagebox
+import os
 from os import startfile
+import pyaudio
+import wave
+from moviepy.video.io.VideoFileClip import VideoFileClip, AudioFileClip
 
 root = tbs.Window()
 root.title("Camera")
@@ -33,13 +37,13 @@ width_1, height_1 = 640, 480
 root.cam.set(cv.CAP_PROP_FRAME_WIDTH, width_1)
 root.cam.set(cv.CAP_PROP_FRAME_HEIGHT, height_1)
     
-destPath = tbs.StringVar()     #value="C:\\Users\\yakup\\Pictures\\cameraapp"
+destPath = tbs.StringVar(value="C:\\Users\\yakup\\Pictures\\cameraapp")     
 def destBrowse():
-    directory = filedialog.askdirectory()   #initialdir="C:\\Users\\yakup\\Pictures\\cameraapp"
+    directory = filedialog.askdirectory(initialdir="C:\\Users\\yakup\\Pictures\\cameraapp")   
     destPath.set(directory)
     
 def openImage():
-    openDirectory = filedialog.askopenfilename()    #initialdir=destPath
+    openDirectory = filedialog.askopenfilename(initialdir=destPath)    
     imageTypes = [".png", ".jpg", ".jpeg", ".svg"]
     videoTypes = [".avi", ".mp4", ".mp4a", ".xvid", ".mp4v"]
     if any(element in openDirectory for element in imageTypes):
@@ -52,8 +56,8 @@ def openImage():
         ""
     else:
         Messagebox.show_error(message="This is not a valid file. \nPlease select a video or image.", 
-                              title="Error") 
-
+                              title="Error")
+        
 i = 2
 def changeTheme():
     global i
@@ -65,7 +69,6 @@ def changeTheme():
         style = tbs.Style("cosmo")
         root.roundToggle.configure(text="Light")
     
-
 def createWidgets():
     theme="primary"
     #print(tbs.Style().theme_names())
@@ -187,10 +190,43 @@ def increaseControl():
 p = 0
 def pauseCommand():
     global p
-    p+=1    
+    p+=1
+
+k = 1
+def audioRecord(k):
+    global stream, frames_per_buffer, audio_frames, audio, filename, channels, rate, format
+    if k == 1:
+        rate, frames_per_buffer, channels = 26825, 1024, 2
+        format = pyaudio.paInt32
+        audioTime = datetime.now().strftime("%d-%m-%Y %H-%M-%S")   
+        audioPath = destPath.get()
+        filename = audioPath + "\\" + audioTime + ".wav"
+        
+        audio = pyaudio.PyAudio()  # Create an interface to PortAudio
+        
+        stream = audio.open(format=format, channels=channels, rate=rate, frames_per_buffer=frames_per_buffer, input=True)
+        audio_frames = []  # Initialize array to store frames
+    if k == 2:
+        data = stream.read(frames_per_buffer)
+        audio_frames.append(data)
+    if k == 3:
+        # Stop and close the stream 
+        stream.stop_stream()
+        stream.close()
+        # Terminate the PortAudio interface
+        audio.terminate()
+        
+        # Save the recorded data as a WAV file
+        wf = wave.open(filename, 'wb')
+        wf.setnchannels(channels)
+        wf.setsampwidth(audio.get_sample_size(format))
+        wf.setframerate(rate)
+        wf.writeframes(b''.join(audio_frames))
+        wf.close()
+ 
 
 def camera():
-    global out, recordControl, p, frame
+    global out, recordControl, p, frame, k, videoName
     
     ret,frame = root.cam.read()
     
@@ -215,6 +251,7 @@ def camera():
                 fourcc = cv.VideoWriter_fourcc(*"mp4v")
                 out = cv.VideoWriter(videoName, fourcc, 25, (width_1,height_1))
                 increaseControl()
+                audioRecord(k=1)
                 print(recordControl)
             else:
                 Messagebox.show_error(message="Directory is not selected for video storing", title="Error")
@@ -223,17 +260,27 @@ def camera():
             
         elif recordControl == 2 and p % 2 == 0:
             out.write(frame)
+            audioRecord(k=2)
             root.recordButton.configure(text="Video Durdur", image=stop_button)
             root.pauseVideoButton.configure(image=pause_button)
             root.pauseVideoButton.place(rely=0.5, relx=1, x=-60, y=-120, anchor="center")
         elif p % 2 == 1:
             root.pauseVideoButton.configure(text="Videoyu devam ettir", image=play_button)
         elif recordControl == 3:
-            out.release()
-            recordControl = 0
-            p = 0
             root.recordButton.configure(text="Video Başlat", image=cam_rec)
             root.pauseVideoButton.place_forget()
+            out.release()
+            audioRecord(k=3)
+            
+            video_clip = VideoFileClip(videoName)
+            audio_clip = AudioFileClip(filename)
+            final_clip = video_clip.set_audio(audio_clip)
+            final_clip.write_videofile(videoName + ".mp4")
+            os.remove(filename)
+            os.remove(videoName)
+            
+            recordControl = 0
+            p = 0
         
         root.cameraLabel.after(10,camera)
       
